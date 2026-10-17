@@ -1,0 +1,36 @@
+AEC ARTS PRIVATE SHARED WORKSPACE — NEXT SESSION CONNECTION PLAN (v11)
+=====================================================================
+
+GOAL
+Deploy the private product-management workspace to a Cloudflare workers.dev address. This does NOT launch the public AEC Arts customer shop or enable checkout.
+
+IMPORTANT CORRECTION
+The package's wrangler.toml contains a placeholder for the D1 database ID. Cloudflare will NOT automatically replace this placeholder simply because the database has the expected name. We must create the database first and put its actual ID into the config before the first deployment. Never guess the ID.
+
+EASIEST DASHBOARD-FIRST ROUTE
+1. In Cloudflare, open Workers & Pages, then D1 SQL Database (or Storage & Databases > D1, depending on the dashboard layout). Create a NEW database named aec-arts-private-catalogue. Do not select or reuse the Mon-Gen database. Copy the database ID from its details page. This is the only account-specific value needed in the project config.
+2. Create a NEW, separate GitHub repository named aec-arts-private-workspace. Do not reuse or overwrite the Mon-Gen repository. Upload the CONTENTS of this project folder to the repository root (not the ZIP file itself).
+3. In the new repository, open wrangler.toml, choose Edit, replace only REPLACE_WITH_YOUR_EXISTING_OR_NEW_D1_DATABASE_ID with the exact D1 ID copied in step 1, and commit the change. Do not alter other lines.
+4. In Cloudflare Workers & Pages, create a Worker using the GitHub repository / Workers Builds integration. Select the new aec-arts-private-workspace repository. Keep the Worker name aec-arts-private-workspace. Use npm install as the build command if the setup requires one; use npm run deploy as the deploy command. The deploy script applies the migration and deploys the app. If Cloudflare's form uses different fields or reports an error, stop and inspect the actual screen rather than guessing.
+5. In the deployed Worker settings, add these as SECRET values (not plain variables): AEC_OWNER_PASSWORD, AEC_PARTNER_PASSWORD, AEC_SESSION_SECRET. Use two different strong passwords and a separate long random session secret. Never put these values in GitHub, the ZIP, or chat.
+6. Check the deployment logs show the D1 migration succeeded and the HTTPS workers.dev page loads. If the build fails, keep the log/error text and fix that specific cause before retrying.
+7. Test with owner and partner in separate browsers/devices: incorrect password is rejected; each correct login works; add a clearly labelled test product on one device; refresh the other and confirm it appears; edit its price there; refresh the first and confirm the change; test sign-out.
+8. Only after shared sync is verified, export the current v7 catalogue as CSV, keep a backup, then import it once into the shared workspace. Confirm product count and A4/A3 categories.
+
+SAFETY
+- The private workspace will have a public HTTPS URL, but product data and management APIs require sign-in. The public AEC Arts shop remains separate and offline.
+- Do not use or modify Mon-Gen Worker, database, repository, domain routes, Stripe, or existing service sites.
+- Do not import the live catalogue until two-device sharing is proven.
+- Do not share the workspace URL as ready for business use until login, shared sync, sign-out, and import checks pass.
+- The public/index.html shell can load without login; catalogue data is not embedded in it.
+
+PACKAGE CONTENTS
+worker.js = API, authentication/session checks and shared catalogue
+public/index.html = private workspace UI
+migrations/0001_private_catalogue.sql = initial D1 schema
+wrangler.toml = deployment config; database ID must be filled with the real ID before deployment
+package.json = test and deployment commands
+reference/ = separate shop template reference; it is not deployed as the customer storefront
+
+LOCAL VERIFICATION
+Backend tests: 6/6 pass in the supplied package. Local checks do not prove live Cloudflare deployment or two-device sharing; those must be tested after deployment.

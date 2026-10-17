@@ -1,0 +1,14 @@
+name = "aec-arts-private-workspace"
+main = "worker.js"
+compatibility_date = "2026-10-17"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aec-arts-private-catalogue"
+database_id = "REPLACE_WITH_YOUR_EXISTING_OR_NEW_D1_DATABASE_ID"
+migrations_dir = "migrations"
