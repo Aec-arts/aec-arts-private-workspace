@@ -4,7 +4,11 @@
   "type": "module",
   "scripts": {
     "test": "node --test worker.test.mjs",
+    "assets:prepare": "node prepare-assets.mjs",
     "db:setup": "wrangler d1 execute aec-arts-private-catalogue --remote --file=schema.sql",
-    "deploy": "npm run db:setup && wrangler deploy"
+    "deploy": "npm run assets:prepare && npm run db:setup && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.1"
   }
 }

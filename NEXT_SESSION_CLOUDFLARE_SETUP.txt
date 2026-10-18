@@ -1,27 +1,28 @@
-AEC ARTS PRIVATE SHARED WORKSPACE — DEPLOYMENT CHECKLIST
-========================================================
+AEC ARTS PRIVATE WORKSPACE — DEPLOY CHECKLIST v14
 
-The package has been consolidated against the existing private GitHub repository and the existing D1 database `aec-arts-private-catalogue`.
+Repository: Aec-arts/aec-arts-private-workspace (Private)
+Worker name: aec-arts-private-workspace
+D1 database: aec-arts-private-catalogue
+D1 ID: f5a19b26-3e1c-48fa-bcc7-dbd31c730ece
 
-BEFORE DEPLOYMENT
-- Keep the folder layout intact: index.html, 0001_private_catalogue.sql, worker.test.mjs, AEC_Arts_Shop_v10_Image_Zoom_Tagline.html.
-- wrangler.toml already contains the existing D1 database ID. Do not change it or use Mon-Gen's database.
-- Do not deploy the public customer shop or attach its domain.
+Before deployment:
+- Upload the extracted v14 files individually to the repository root (not the ZIP).
+- Replace matching root files with the v14 versions.
+- Do not attach a public-shop custom domain or route.
+- Ensure Workers Builds uses a standard Node/npm environment, runs npm install, then `npm run deploy`.
+- Add Worker secrets in Cloudflare: AEC_OWNER_PASSWORD, AEC_PARTNER_PASSWORD, AEC_SESSION_SECRET. Never put secret values in GitHub or chat.
 
-CLOUDFLARE
-1. Connect the private GitHub repository to a NEW Worker called `aec-arts-private-workspace` under Workers & Pages / Workers Builds.
-2. Set Worker secrets: AEC_OWNER_PASSWORD, AEC_PARTNER_PASSWORD, AEC_SESSION_SECRET. Use two different strong passwords and a separate long random session secret. Never commit these values.
-3. Use `npm run deploy` as the deploy command in a standard Node/npm build environment. The script first applies migrations to `aec-arts-private-catalogue`, then runs `wrangler deploy`.
-4. Stop if the deployment screen shows an error; keep the full error text and fix the actual cause before retrying.
+The deploy command generates `.assetsignore` automatically (so no hidden-file upload is needed), applies schema.sql to the configured D1 database, and deploys the Worker. Only index.html is allowed into the public static asset bundle.
 
-LIVE VERIFICATION — REQUIRED
-- Worker deployment succeeds and assigned HTTPS page loads.
-- Wrong password is rejected.
-- Owner and partner can sign in on separate browsers/devices.
-- A test product saved on one device appears on the other after refresh.
-- An edit syncs back; stale edits are blocked instead of overwriting changes.
-- Sign-out clears access.
-- Delete the test product.
-- Export and back up the existing catalogue before importing. Import only after two-device tests pass; import replaces the shared catalogue.
+After deployment, verify:
+1. Incorrect password is rejected.
+2. Owner login works.
+3. Partner login works in a separate browser/device.
+4. A test product added on device A appears after refresh on device B.
+5. An edit from device B appears on device A after refresh.
+6. Sign-out clears the session.
+7. Delete the test product.
 
-This is a private catalogue manager only. It does not launch the public shop or enable real checkout. Local tests passed, but live verification is still outstanding.
+Only after all tests pass, export a catalogue backup and import the real catalogue once. Import replaces the shared catalogue.
+
+Do not deploy if the build log reports a schema, binding, secret, or asset error. This package has passed local tests only; live behavior remains unverified until the above tests are completed.
