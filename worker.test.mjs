@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker from '../worker.js';
+import worker from './worker.js';
 
 class FakeDB {
   constructor(){ this.catalogue=null; this.attempts=new Map(); }

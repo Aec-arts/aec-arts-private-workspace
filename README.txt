@@ -1,53 +1,49 @@
-AEC ARTS PRIVATE SHARED CATALOGUE — BUILD v11
-============================================
+AEC ARTS PRIVATE SHARED CATALOGUE — CONSOLIDATED DEPLOYMENT PACKAGE
+====================================================================
 
-WHAT THIS IS
-A private product-management workspace for the owner and business partner. It is not the public AEC Arts shop and has no public storefront or live checkout. Both authorised users work on the same catalogue stored in Cloudflare D1.
+PURPOSE
+A private shared product-management workspace for the owner and business partner. It is separate from the public AEC Arts shop. It does not publish the customer storefront or process payments.
 
-FEATURES IN THIS BUILD
-- Separate Owner and Business partner sign-in identities.
-- Server-verified sessions using signed, HttpOnly, Secure, SameSite=Strict cookies.
-- Product list, search, add, edit, delete, categories, prices, descriptions and product images.
-- A4 Prints and A3 Prints are suggested as separate categories; print titles containing A4/A3 are automatically assigned during import/add when the category is not manually overridden. One-off Canvases and Healing Pads are also suggested categories.
-- CSV catalogue import and export backup.
-- Shop template reference v10 includes click-to-enlarge product photography, hover zoom on desktop, a mobile-friendly enlarged product detail view, and the tagline “where art meets wellness”.
-- Shared changes are saved to one database.
-- Stale-save protection: if the other user saves after you loaded the catalogue, your save is blocked until you refresh; this prevents silently overwriting their work.
-- Basic login-attempt throttling and input validation.
-- Private API endpoints, same-origin checks, no-store responses and browser security headers.
-- Cloudflare D1 migration/schema included.
+WHAT IS INCLUDED
+- Separate owner and partner sign-in identities.
+- Server-verified signed sessions in Secure, HttpOnly, SameSite=Strict cookies.
+- Shared catalogue stored in Cloudflare D1: add/edit/delete products, categories, prices, descriptions and image URLs or small embedded images.
+- CSV import/export and stale-save protection.
+- A4 Prints/A3 Prints category suggestions, plus suggested categories for canvases and healing pads.
+- Private API, origin checks, login-attempt throttling, validation and response security headers.
+- Local worker tests and D1 migration.
 
-IMPORTANT CURRENT STATUS
-This is a built deployment package, not yet a live shared website. The code has not been deployed into the user's Cloudflare account and no real sign-in/database test against that account has been possible from this build session. Do not share a URL or use it for real catalogue work until deployment and the two-user verification are completed.
+IMPORTANT STATUS
+This is a deployment-ready package, not a live deployment. The six included Worker tests pass locally. Live login, database writes, two-device sharing, and sign-out still require deployment and real-browser verification. Do not import the real catalogue or use this for daily business work until those checks pass.
 
-WHAT IT NEEDS TO GO LIVE PRIVATELY
-1. A Cloudflare Worker with static assets and a separate D1 database. Use NEXT_SESSION_CLOUDFLARE_SETUP.txt. First create the database in the Cloudflare dashboard, then copy its real ID into the single database_id line in wrangler.toml using GitHub’s web editor. The ID cannot be guessed or automatically inferred from the database name.
-2. Set these Worker secrets in Cloudflare (never put them in this file or the HTML):
-   - AEC_OWNER_PASSWORD: a strong private password for the owner
-   - AEC_PARTNER_PASSWORD: a different strong private password for the partner
-   - AEC_SESSION_SECRET: a long random secret used to sign sessions
-3. Apply the included migration and deploy the Worker plus public/ assets. The package includes a Cloudflare Workers Builds deploy script for this step. The first deployment must not run until the database_id placeholder has been replaced with the real ID.
-4. Open the resulting HTTPS URL, sign in as both users on separate browsers/devices, add/edit a test product, refresh the other browser, and verify it appears there. Also test bad passwords and sign-out.
+STRUCTURE — KEEP THESE FOLDERS
+- worker.js
+- wrangler.toml
+- package.json
+- schema.sql
+- 0001_private_catalogue.sql
+- index.html
+- worker.test.mjs
+- AEC_Arts_Shop_v10_Image_Zoom_Tagline.html
+- app.js (development/reference copy; the deployed UI script is embedded in index.html)
 
-DEPLOYMENT FILES
-- worker.js: API, login/session verification, catalogue validation, stale-write protection.
-- public/index.html: private workspace interface.
-- migrations/0001_private_catalogue.sql: D1 schema.
-- wrangler.toml: deployment configuration with one database ID placeholder.
-- schema.sql: readable copy of the schema.
-- reference/AEC_Arts_Shop_v10_Image_Zoom_Tagline.html: updated standalone shop template reference, kept outside the private workspace public assets folder. The separate shop template is still a local test build; it is not the shared/private catalogue app and does not take live payments.
+DATABASE
+wrangler.toml is already set to the existing D1 database `aec-arts-private-catalogue`. Do not replace the database ID and do not connect this project to Mon-Gen.
 
-CATALOGUE MIGRATION
-The workspace can import the CSV exported from v7. In v7, choose Export catalogue and save the CSV. Once the private workspace is deployed and signed in, choose Import catalogue CSV. Import replaces the shared catalogue, so export a backup first and import only once. Shopify CSV variant rows are grouped by product handle where possible.
+DEPLOYMENT ORDER
+1. Preserve the existing repository commit. Add this package's files/folders with their directory structure intact. The files under public/, migrations/, tests/, and reference/ must remain in those folders. Do not upload the ZIP itself.
+2. In Cloudflare Workers & Pages, connect this repository to a NEW Worker named `aec-arts-private-workspace`. Do not attach a custom domain or route for the public shop.
+3. Add these Worker secrets in Cloudflare settings: AEC_OWNER_PASSWORD, AEC_PARTNER_PASSWORD, AEC_SESSION_SECRET. Use unique strong passwords for owner and partner and a long random session secret. Never put secrets in GitHub or chat.
+4. Configure the build/deploy command to run `npm run deploy` (with the standard Node/npm environment). This applies the migration to the named D1 database and deploys the Worker and public/ assets. If Cloudflare's actual build screen differs or errors, stop and inspect the exact message rather than guessing.
+5. Confirm the deployment log shows migration and deployment success. Open the assigned HTTPS workers.dev URL.
+6. Verify: bad password rejected; owner login works; partner login works in another browser/device; a test product added on one device appears after refresh on the other; an edit syncs back; sign-out clears the session. Delete the test product after verification.
+7. Only then export a backup of the current catalogue and import it once. Import replaces the shared catalogue, so keep the backup and verify product count/categories afterward.
 
-IMAGE NOTE
-Small image files can be stored in the shared catalogue, but this is intentionally limited to keep the database payload safe. Prefer image URLs for larger product photography. Total saved catalogue payload has a limit; if it is exceeded, reduce image sizes or use image URLs.
+SECURITY AND SCOPE
+The HTML shell can load without signing in, but catalogue data and management API calls require a valid session. No catalogue products are embedded in the HTML shell. Do not publish or share the workspace URL as business-ready until live tests pass. The package does not alter Shopify, Stripe, public AEC Arts pages, service sites, or Mon-Gen resources.
 
-SECURITY / LIMITS
-- The HTML shell itself is served publicly, but catalogue data and management API calls require successful sign-in. No product data is embedded in the HTML shell.
-- User identities are fixed as owner and partner; passwords are supplied as Cloudflare secrets.
-- This is a private product catalogue workspace only. It does not process payments, take customer orders, publish the store, or alter existing AEC Arts / Shopify / Stripe settings.
-- The catalogue uses a single shared revision. When another user saves, the other user's unsaved stale view must refresh before saving. It does not silently merge simultaneous edits.
+LOCAL TESTS
+Run `npm test` in a Node.js environment. Local tests are not proof of live deployment. The included six Worker tests passed during package validation.
 
-LOCAL CHECKS
-Run Node.js syntax checks on worker.js and the browser script, inspect the migration and ZIP integrity, then perform the live two-browser test after deployment. Passing local checks is not evidence of a live deployment.
+
+ROOT-LAYOUT NOTE: This package intentionally matches the repository layout that GitHub has already accepted: all deployment files are at the repository root. The .assetsignore file ensures only index.html is uploaded as a public static asset; worker source, tests, SQL, configuration and documentation are excluded from the public asset bundle.
