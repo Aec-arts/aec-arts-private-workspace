@@ -1,4 +1,4 @@
-AEC ARTS PRIVATE WORKSPACE — DEPLOY CHECKLIST v14
+AEC ARTS PRIVATE WORKSPACE — DEPLOY CHECKLIST v15 — PRIVATE PREVIEW + ASSET ISOLATION
 
 Repository: Aec-arts/aec-arts-private-workspace (Private)
 Worker name: aec-arts-private-workspace
@@ -6,13 +6,13 @@ D1 database: aec-arts-private-catalogue
 D1 ID: f5a19b26-3e1c-48fa-bcc7-dbd31c730ece
 
 Before deployment:
-- Upload the extracted v14 files individually to the repository root (not the ZIP).
-- Replace matching root files with the v14 versions.
+- Upload the extracted v15 files individually to the repository root (not the ZIP).
+- Replace matching root files with the v15 versions.
 - Do not attach a public-shop custom domain or route.
 - Ensure Workers Builds uses a standard Node/npm environment, runs npm install, then `npm run deploy`.
 - Add Worker secrets in Cloudflare: AEC_OWNER_PASSWORD, AEC_PARTNER_PASSWORD, AEC_SESSION_SECRET. Never put secret values in GitHub or chat.
 
-The deploy command generates `.assetsignore` automatically (so no hidden-file upload is needed), applies schema.sql to the configured D1 database, and deploys the Worker. Only index.html is allowed into the public static asset bundle.
+The deploy command recreates a dedicated `public/` directory containing only `index.html`, applies schema.sql to the configured D1 database, and deploys the Worker. Wrangler must use `./public`, never the repository root, as its static asset directory.
 
 After deployment, verify:
 1. Incorrect password is rejected.
@@ -22,7 +22,8 @@ After deployment, verify:
 5. An edit from device B appears on device A after refresh.
 6. Sign-out clears the session.
 7. Delete the test product.
+8. Sign in, click “Preview storefront”, and confirm the read-only preview reflects the shared catalogue. Opening `/preview` while signed out should redirect to the login page.
 
-Only after all tests pass, export a catalogue backup and import the real catalogue once. Import replaces the shared catalogue.
+After deployment and access tests, import the real catalogue using the existing CSV button. The importer accepts Shopify product exports and workspace backup CSVs, including tag and embedded image fields. Import replaces the shared catalogue; export a backup first if it contains anything worth preserving.
 
-Do not deploy if the build log reports a schema, binding, secret, or asset error. This package has passed local tests only; live behavior remains unverified until the above tests are completed.
+Do not deploy if the build log reports a schema, binding, secret, or asset error. The eight Worker tests pass locally; live behavior remains unverified until the above tests are completed.

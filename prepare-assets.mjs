@@ -1,7 +1,11 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, rm, copyFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 
-// Cloudflare Wrangler reads .assetsignore from the configured asset directory.
-// Generate it during the build so Windows' hidden-file handling cannot omit it
-// from a GitHub web upload. Only the private workspace HTML shell is public.
-await writeFile('.assetsignore', '*\n!index.html\n', { encoding: 'utf8' });
-console.log('Prepared static asset allow-list: index.html only.');
+// Publish a dedicated, freshly-created directory containing only the HTML shell.
+// Wrangler must never point at the repository root: that could expose source,
+// tests, SQL, configuration, or the standalone shop-template reference.
+const publicDir = resolve('public');
+await rm(publicDir, { recursive: true, force: true });
+await mkdir(publicDir, { recursive: true });
+await copyFile(resolve('index.html'), resolve(publicDir, 'index.html'));
+console.log('Prepared public asset directory: public/index.html only.');
